@@ -56,7 +56,7 @@ func (r *Reader) Reset() error {
 	return nil
 }
 
-func (r *Reader) ReadAsBefore(beforeTs uint64) (key []byte, ts, hc uint64, err error) {
+func (r *Reader) ReadBetween(initialTs, finalTs uint64) (key []byte, ts, hc uint64, err error) {
 	if r.closed {
 		return nil, 0, 0, ErrAlreadyClosed
 	}
@@ -137,7 +137,7 @@ func (r *Reader) ReadAsBefore(beforeTs uint64) (key []byte, ts, hc uint64, err e
 		}
 
 		if len(r.prefix) == 0 {
-			ts, hc, err := leafValue.asBefore(r.snapshot.t.hLog, beforeTs)
+			ts, hc, err := leafValue.lastUpdateBetween(r.snapshot.t.hLog, initialTs, finalTs)
 			if err == nil {
 				return cp(leafValue.key), ts, hc, nil
 			}
@@ -148,7 +148,7 @@ func (r *Reader) ReadAsBefore(beforeTs uint64) (key []byte, ts, hc uint64, err e
 
 			// prefix match
 			if bytes.Equal(r.prefix, leafPrefix) {
-				ts, hc, err := leafValue.asBefore(r.snapshot.t.hLog, beforeTs)
+				ts, hc, err := leafValue.lastUpdateBetween(r.snapshot.t.hLog, initialTs, finalTs)
 				if err == nil {
 					return cp(leafValue.key), ts, hc, nil
 				}
